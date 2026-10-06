@@ -1,0 +1,3 @@
+import {createHash} from 'node:crypto';
+import {ensureSchema,reply} from './_db.mjs';
+export default async function handler(req,res){try{if(req.method!=='POST')return reply(res,405,{error:'Method not allowed.'},{Allow:'POST'});const token=(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith('sid='))?.slice(4);if(token){const hash=createHash('sha256').update(token).digest('hex'),sql=await ensureSchema();await sql`DELETE FROM daymark_sessions WHERE token_hash=${hash}`}return reply(res,200,{ok:true},{'Set-Cookie':'sid=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'})}catch(e){console.error(e);return reply(res,500,{error:'Could not sign out.'})}}
